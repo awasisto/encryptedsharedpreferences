@@ -19,7 +19,8 @@ package com.wasisto.encryptedsharedpreferences;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Base64;
@@ -60,17 +61,17 @@ public class EncryptedSharedPreferences implements SharedPreferences {
     private static final String ENCRYPTED_DATA = "encrypted_data";
     private static final String IV = "iv";
 
-    private EncryptionService mEncryptionService;
+    private EncryptionService encryptionService;
 
-    private SharedPreferences mSharedPreferences;
+    private SharedPreferences sharedPreferences;
 
-    private Map<Object, OnSharedPreferenceChangeListener> mListeners = new HashMap<>();
+    private Map<Object, OnSharedPreferenceChangeListener> listeners = new HashMap<>();
 
     private EncryptedSharedPreferences(Context context, String encryptedPreferencesName)
             throws PreferencesLostException {
         try {
-            mEncryptionService = EncryptionService.getInstance(context);
-            mSharedPreferences = context.getSharedPreferences(encryptedPreferencesName +
+            encryptionService = EncryptionService.getInstance(context);
+            sharedPreferences = context.getSharedPreferences(encryptedPreferencesName +
                     ENCRYPTED_SHARED_PREFERENCES_NAME_SUFFIX, MODE_PRIVATE);
 
             SharedPreferences espSharedPreferences = context.getSharedPreferences(
@@ -120,33 +121,22 @@ public class EncryptedSharedPreferences implements SharedPreferences {
     public static void getEncryptedSharedPreferencesAsync(Context context,
                                                           String name,
                                                           GetEncryptedSharedPreferencesAsyncCallback callback) {
-        new AsyncTask<Void, Void, Void>() {
-            private EncryptedSharedPreferences mEncryptedSharedPreferences;
-            private Throwable mError;
+        Handler handler = new Handler(Looper.myLooper() != null ? Looper.myLooper() :
+                Looper.getMainLooper());
 
-            @Override
-            protected Void doInBackground(Void... v) {
-                try {
-                    mEncryptedSharedPreferences = getEncryptedSharedPreferences(context, name);
-                } catch (Throwable error) {
-                    mError = error;
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void v) {
-                if (mError != null) {
-                    if (mError instanceof PreferencesLostException) {
-                        callback.onPreferencesLost((PreferencesLostException) mError);
-                    } else {
-                        callback.onError(mError);
-                    }
+        new Thread(() -> {
+            try {
+                EncryptedSharedPreferences encryptedSharedPreferences =
+                        getEncryptedSharedPreferences(context, name);
+                handler.post(() -> callback.onSuccess(encryptedSharedPreferences));
+            } catch (Throwable t) {
+                if (t instanceof PreferencesLostException) {
+                    callback.onPreferencesLost((PreferencesLostException) t);
                 } else {
-                    callback.onSuccess(mEncryptedSharedPreferences);
+                    callback.onError(t);
                 }
             }
-        }.execute();
+        }).start();
     }
 
     /**
@@ -175,33 +165,22 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      */
     public static void getActivityEncryptedPreferencesAsync(Activity activity,
                                                             GetEncryptedSharedPreferencesAsyncCallback callback) {
-        new AsyncTask<Void, Void, Void>() {
-            private EncryptedSharedPreferences mEncryptedSharedPreferences;
-            private Throwable mError;
+        Handler handler = new Handler(Looper.myLooper() != null ? Looper.myLooper() :
+                Looper.getMainLooper());
 
-            @Override
-            protected Void doInBackground(Void... v) {
-                try {
-                    mEncryptedSharedPreferences = getActivityEncryptedPreferences(activity);
-                } catch (Throwable error) {
-                    mError = error;
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void v) {
-                if (mError != null) {
-                    if (mError instanceof PreferencesLostException) {
-                        callback.onPreferencesLost((PreferencesLostException) mError);
-                    } else {
-                        callback.onError(mError);
-                    }
+        new Thread(() -> {
+            try {
+                EncryptedSharedPreferences activityEncryptedPreferences =
+                        getActivityEncryptedPreferences(activity);
+                handler.post(() -> callback.onSuccess(activityEncryptedPreferences));
+            } catch (Throwable t) {
+                if (t instanceof PreferencesLostException) {
+                    callback.onPreferencesLost((PreferencesLostException) t);
                 } else {
-                    callback.onSuccess(mEncryptedSharedPreferences);
+                    callback.onError(t);
                 }
             }
-        }.execute();
+        }).start();
     }
 
     /**
@@ -231,35 +210,22 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      */
     public static void getContextDefaultEncryptedSharedPreferencesAsync(Context context,
                                                                         GetEncryptedSharedPreferencesAsyncCallback callback) {
+        Handler handler = new Handler(Looper.myLooper() != null ? Looper.myLooper() :
+                Looper.getMainLooper());
 
-        new AsyncTask<Void, Void, Void>() {
-            private EncryptedSharedPreferences mEncryptedSharedPreferences;
-            private Throwable mError;
-
-            @Override
-            protected Void doInBackground(Void... v) {
-                try {
-                    mEncryptedSharedPreferences =
-                            getContextDefaultEncryptedSharedPreferences(context);
-                } catch (Throwable error) {
-                    mError = error;
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void v) {
-                if (mError != null) {
-                    if (mError instanceof PreferencesLostException) {
-                        callback.onPreferencesLost((PreferencesLostException) mError);
-                    } else {
-                        callback.onError(mError);
-                    }
+        new Thread(() -> {
+            try {
+                EncryptedSharedPreferences contextDefaultEncryptedSharedPreferences =
+                        getContextDefaultEncryptedSharedPreferences(context);
+                handler.post(() -> callback.onSuccess(contextDefaultEncryptedSharedPreferences));
+            } catch (Throwable t) {
+                if (t instanceof PreferencesLostException) {
+                    callback.onPreferencesLost((PreferencesLostException) t);
                 } else {
-                    callback.onSuccess(mEncryptedSharedPreferences);
+                    callback.onError(t);
                 }
             }
-        }.execute();
+        }).start();
     }
 
     /**
@@ -292,28 +258,17 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      */
     public static void resetEncryptedSharedPreferencesAsync(Context context,
                                                             ResetEncryptedSharedPreferencesAsyncCallback callback) {
-        new AsyncTask<Void, Void, Void>() {
-            private Throwable mError;
+        Handler handler = new Handler(Looper.myLooper() != null ? Looper.myLooper() :
+                Looper.getMainLooper());
 
-            @Override
-            protected Void doInBackground(Void... v) {
-                try {
-                    resetEncryptedSharedPreferences(context);
-                } catch (Throwable error) {
-                    mError = error;
-                }
-                return null;
+        new Thread(() -> {
+            try {
+                resetEncryptedSharedPreferences(context);
+                handler.post(callback::onSuccess);
+            } catch (Throwable t) {
+                handler.post(() -> callback.onError(t));
             }
-
-            @Override
-            protected void onPostExecute(Void v) {
-                if (mError != null) {
-                    callback.onError(mError);
-                } else {
-                    callback.onSuccess();
-                }
-            }
-        }.execute();
+        }).start();
     }
 
     private static EncryptedDataAndIv createEncryptedDataAndIv(JSONObject encryptedValueJsonObject) {
@@ -345,7 +300,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
     @SuppressWarnings("unchecked")
     @Override
     public Map<String, ?> getAll() {
-        Map<String, ?> encryptedPreferences = mSharedPreferences.getAll();
+        Map<String, ?> encryptedPreferences = sharedPreferences.getAll();
         Map<String, Object> decryptedPreferences = new HashMap<>(encryptedPreferences.size());
         for (Map.Entry<String, ?> encryptedPreference : encryptedPreferences.entrySet()) {
             try {
@@ -362,7 +317,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
                         }
                         EncryptedDataAndIv encryptedDataAndIv = createEncryptedDataAndIv(
                                 encryptedValueJsonObject);
-                        String decryptedValue = mEncryptionService.decryptString(
+                        String decryptedValue = encryptionService.decryptString(
                                 encryptedDataAndIv);
                         decryptedSetValues.add(decryptedValue);
                     }
@@ -374,20 +329,20 @@ public class EncryptedSharedPreferences implements SharedPreferences {
                             encryptedValueJsonObject);
                     String valueType = encryptedValueJsonObject.getString(TYPE);
                     if (valueType.equals(String.class.getCanonicalName())) {
-                        String decryptedValue = mEncryptionService.decryptString(
+                        String decryptedValue = encryptionService.decryptString(
                                 encryptedDataAndIv);
                         decryptedPreferences.put(encryptedPreference.getKey(), decryptedValue);
                     } else if (valueType.equals(Integer.class.getCanonicalName())) {
-                        int decryptedValue = mEncryptionService.decryptInt(encryptedDataAndIv);
+                        int decryptedValue = encryptionService.decryptInt(encryptedDataAndIv);
                         decryptedPreferences.put(encryptedPreference.getKey(), decryptedValue);
                     } else if (valueType.equals(Long.class.getCanonicalName())) {
-                        long decryptedValue = mEncryptionService.decryptLong(encryptedDataAndIv);
+                        long decryptedValue = encryptionService.decryptLong(encryptedDataAndIv);
                         decryptedPreferences.put(encryptedPreference.getKey(), decryptedValue);
                     } else if (valueType.equals(Float.class.getCanonicalName())) {
-                        float decryptedValue = mEncryptionService.decryptFloat(encryptedDataAndIv);
+                        float decryptedValue = encryptionService.decryptFloat(encryptedDataAndIv);
                         decryptedPreferences.put(encryptedPreference.getKey(), decryptedValue);
                     } else if (valueType.equals(Boolean.class.getCanonicalName())) {
-                        int decryptedIntValue = mEncryptionService.decryptInt(encryptedDataAndIv);
+                        int decryptedIntValue = encryptionService.decryptInt(encryptedDataAndIv);
                         boolean decryptedValue = parseBoolean(decryptedIntValue);
                         decryptedPreferences.put(encryptedPreference.getKey(), decryptedValue);
                     } else {
@@ -408,7 +363,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
     @Nullable
     @Override
     public String getString(String key, @Nullable String defValue) {
-        String encryptedValueJson = mSharedPreferences.getString(key, null);
+        String encryptedValueJson = sharedPreferences.getString(key, null);
         if (encryptedValueJson != null) {
             try {
                 JSONObject encryptedValueJsonObject = new JSONObject(encryptedValueJson);
@@ -419,7 +374,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
                 }
                 EncryptedDataAndIv encryptedDataAndIv = createEncryptedDataAndIv(
                         encryptedValueJsonObject);
-                return mEncryptionService.decryptString(encryptedDataAndIv);
+                return encryptionService.decryptString(encryptedDataAndIv);
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
@@ -434,7 +389,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
     @Override
     public Set<String> getStringSet(String key, @Nullable Set<String> defValues) {
         Set<String> decryptedValues = new HashSet<>();
-        Set<String> encryptedValueJsonSet = mSharedPreferences.getStringSet(key, null);
+        Set<String> encryptedValueJsonSet = sharedPreferences.getStringSet(key, null);
         if (encryptedValueJsonSet != null) {
             for (String encryptedValueJson : encryptedValueJsonSet) {
                 try {
@@ -446,7 +401,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
                     }
                     EncryptedDataAndIv encryptedDataAndIv = createEncryptedDataAndIv(
                             encryptedValueJsonObject);
-                    String decryptedValue = mEncryptionService.decryptString(encryptedDataAndIv);
+                    String decryptedValue = encryptionService.decryptString(encryptedDataAndIv);
                     decryptedValues.add(decryptedValue);
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
@@ -462,7 +417,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      */
     @Override
     public int getInt(String key, int defValue) {
-        String encryptedValueJson = mSharedPreferences.getString(key, null);
+        String encryptedValueJson = sharedPreferences.getString(key, null);
         if (encryptedValueJson != null) {
             try {
                 JSONObject encryptedValueJsonObject = new JSONObject(encryptedValueJson);
@@ -473,7 +428,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
                 }
                 EncryptedDataAndIv encryptedDataAndIv = createEncryptedDataAndIv(
                         encryptedValueJsonObject);
-                return mEncryptionService.decryptInt(encryptedDataAndIv);
+                return encryptionService.decryptInt(encryptedDataAndIv);
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
@@ -486,7 +441,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      */
     @Override
     public long getLong(String key, long defValue) {
-        String encryptedValueJson = mSharedPreferences.getString(key, null);
+        String encryptedValueJson = sharedPreferences.getString(key, null);
         if (encryptedValueJson != null) {
             try {
                 JSONObject encryptedValueJsonObject = new JSONObject(encryptedValueJson);
@@ -497,7 +452,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
                 }
                 EncryptedDataAndIv encryptedDataAndIv = createEncryptedDataAndIv(
                         encryptedValueJsonObject);
-                return mEncryptionService.decryptLong(encryptedDataAndIv);
+                return encryptionService.decryptLong(encryptedDataAndIv);
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
@@ -510,7 +465,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      */
     @Override
     public float getFloat(String key, float defValue) {
-        String encryptedValueJson = mSharedPreferences.getString(key, null);
+        String encryptedValueJson = sharedPreferences.getString(key, null);
         if (encryptedValueJson != null) {
             try {
                 JSONObject encryptedValueJsonObject = new JSONObject(encryptedValueJson);
@@ -521,7 +476,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
                 }
                 EncryptedDataAndIv encryptedDataAndIv = createEncryptedDataAndIv(
                         encryptedValueJsonObject);
-                return mEncryptionService.decryptFloat(encryptedDataAndIv);
+                return encryptionService.decryptFloat(encryptedDataAndIv);
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
@@ -534,7 +489,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      */
     @Override
     public boolean getBoolean(String key, boolean defValue) {
-        String encryptedValueJson = mSharedPreferences.getString(key, null);
+        String encryptedValueJson = sharedPreferences.getString(key, null);
         if (encryptedValueJson != null) {
             try {
                 JSONObject encryptedValueJsonObject = new JSONObject(encryptedValueJson);
@@ -545,7 +500,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
                 }
                 EncryptedDataAndIv encryptedDataAndIv = createEncryptedDataAndIv(
                         encryptedValueJsonObject);
-                int decryptedIntValue = mEncryptionService.decryptInt(encryptedDataAndIv);
+                int decryptedIntValue = encryptionService.decryptInt(encryptedDataAndIv);
                 return parseBoolean(decryptedIntValue);
             } catch (JSONException e) {
                 throw new RuntimeException(e);
@@ -559,7 +514,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      */
     @Override
     public boolean contains(String key) {
-        return mSharedPreferences.contains(key);
+        return sharedPreferences.contains(key);
     }
 
     /**
@@ -575,12 +530,12 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      */
     @Override
     public void registerOnSharedPreferenceChangeListener(OnSharedPreferenceChangeListener listener) {
-        if (listener != null && !mListeners.containsKey(listener)) {
+        if (listener != null && !listeners.containsKey(listener)) {
             OnSharedPreferenceChangeListener customListener = (sharedPreferences, key) ->
                     listener.onSharedPreferenceChanged(
                             EncryptedSharedPreferences.this, key);
-            mListeners.put(listener, customListener);
-            mSharedPreferences.registerOnSharedPreferenceChangeListener(customListener);
+            listeners.put(listener, customListener);
+            sharedPreferences.registerOnSharedPreferenceChangeListener(customListener);
         }
     }
 
@@ -589,13 +544,13 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      */
     @Override
     public void unregisterOnSharedPreferenceChangeListener(OnSharedPreferenceChangeListener listener) {
-        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(mListeners.get(listener));
-        mListeners.remove(listener);
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(listeners.get(listener));
+        listeners.remove(listener);
     }
 
-    private class Editor implements SharedPreferences.Editor {
+    public class Editor implements SharedPreferences.Editor {
 
-        private SharedPreferences.Editor mSharedPreferencesEditor = mSharedPreferences.edit();
+        private SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
 
         private String createEncryptedValueJson(EncryptedDataAndIv encryptedDataAndIv,
                                                 Class<?> dataClass) {
@@ -618,12 +573,12 @@ public class EncryptedSharedPreferences implements SharedPreferences {
         @Override
         public SharedPreferences.Editor putString(String key, @Nullable String value) {
             if (value != null) {
-                EncryptedDataAndIv encryptedDataAndIv = mEncryptionService.encrypt(value);
+                EncryptedDataAndIv encryptedDataAndIv = encryptionService.encrypt(value);
                 String encryptedValueJson = createEncryptedValueJson(encryptedDataAndIv,
                         String.class);
-                mSharedPreferencesEditor.putString(key, encryptedValueJson);
+                sharedPreferencesEditor.putString(key, encryptedValueJson);
             } else {
-                mSharedPreferencesEditor.putString(key, null);
+                sharedPreferencesEditor.putString(key, null);
             }
             return this;
         }
@@ -636,14 +591,14 @@ public class EncryptedSharedPreferences implements SharedPreferences {
             if (values != null) {
                 Set<String> encryptedValueJsonSet = new HashSet<>(values.size());
                 for (String value : values) {
-                    EncryptedDataAndIv encryptedDataAndIv = mEncryptionService.encrypt(value);
+                    EncryptedDataAndIv encryptedDataAndIv = encryptionService.encrypt(value);
                     String encryptedValueJson = createEncryptedValueJson(encryptedDataAndIv,
                             String.class);
                     encryptedValueJsonSet.add(encryptedValueJson);
                 }
-                mSharedPreferencesEditor.putStringSet(key, encryptedValueJsonSet);
+                sharedPreferencesEditor.putStringSet(key, encryptedValueJsonSet);
             } else {
-                mSharedPreferencesEditor.putStringSet(key, null);
+                sharedPreferencesEditor.putStringSet(key, null);
             }
             return this;
         }
@@ -653,9 +608,9 @@ public class EncryptedSharedPreferences implements SharedPreferences {
          */
         @Override
         public SharedPreferences.Editor putInt(String key, int value) {
-            EncryptedDataAndIv encryptedDataAndIv = mEncryptionService.encrypt(value);
+            EncryptedDataAndIv encryptedDataAndIv = encryptionService.encrypt(value);
             String encryptedValueJson = createEncryptedValueJson(encryptedDataAndIv, Integer.class);
-            mSharedPreferencesEditor.putString(key, encryptedValueJson);
+            sharedPreferencesEditor.putString(key, encryptedValueJson);
             return this;
         }
 
@@ -664,9 +619,9 @@ public class EncryptedSharedPreferences implements SharedPreferences {
          */
         @Override
         public SharedPreferences.Editor putLong(String key, long value) {
-            EncryptedDataAndIv encryptedDataAndIv = mEncryptionService.encrypt(value);
+            EncryptedDataAndIv encryptedDataAndIv = encryptionService.encrypt(value);
             String encryptedValueJson = createEncryptedValueJson(encryptedDataAndIv, Long.class);
-            mSharedPreferencesEditor.putString(key, encryptedValueJson);
+            sharedPreferencesEditor.putString(key, encryptedValueJson);
             return this;
         }
 
@@ -675,9 +630,9 @@ public class EncryptedSharedPreferences implements SharedPreferences {
          */
         @Override
         public SharedPreferences.Editor putFloat(String key, float value) {
-            EncryptedDataAndIv encryptedDataAndIv = mEncryptionService.encrypt(value);
+            EncryptedDataAndIv encryptedDataAndIv = encryptionService.encrypt(value);
             String encryptedValueJson = createEncryptedValueJson(encryptedDataAndIv, Float.class);
-            mSharedPreferencesEditor.putString(key, encryptedValueJson);
+            sharedPreferencesEditor.putString(key, encryptedValueJson);
             return this;
         }
 
@@ -687,9 +642,9 @@ public class EncryptedSharedPreferences implements SharedPreferences {
         @Override
         public SharedPreferences.Editor putBoolean(String key, boolean value) {
             int intValue = value ? 1 : 0;
-            EncryptedDataAndIv encryptedDataAndIv = mEncryptionService.encrypt(intValue);
+            EncryptedDataAndIv encryptedDataAndIv = encryptionService.encrypt(intValue);
             String encryptedValueJson = createEncryptedValueJson(encryptedDataAndIv, Boolean.class);
-            mSharedPreferencesEditor.putString(key, encryptedValueJson);
+            sharedPreferencesEditor.putString(key, encryptedValueJson);
             return this;
         }
 
@@ -698,7 +653,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
          */
         @Override
         public SharedPreferences.Editor remove(String key) {
-            mSharedPreferencesEditor.remove(key);
+            sharedPreferencesEditor.remove(key);
             return this;
         }
 
@@ -707,7 +662,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
          */
         @Override
         public SharedPreferences.Editor clear() {
-            mSharedPreferencesEditor.clear();
+            sharedPreferencesEditor.clear();
             return this;
         }
 
@@ -716,7 +671,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
          */
         @Override
         public boolean commit() {
-            return mSharedPreferencesEditor.commit();
+            return sharedPreferencesEditor.commit();
         }
 
         /**
@@ -724,7 +679,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
          */
         @Override
         public void apply() {
-            mSharedPreferencesEditor.apply();
+            sharedPreferencesEditor.apply();
         }
     }
 
