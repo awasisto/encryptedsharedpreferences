@@ -111,7 +111,7 @@ Download
 
 Download via Gradle:
 
-    implementation 'com.wasisto.encryptedsharedpreferences:encryptedsharedpreferences:2.0.1'
+    implementation 'com.wasisto.encryptedsharedpreferences:encryptedsharedpreferences:2.0.2'
 
 License
 -------

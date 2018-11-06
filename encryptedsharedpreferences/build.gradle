@@ -33,7 +33,7 @@ ext {
     siteUrl = 'https://github.com/awasisto/encryptedsharedpreferences'
     gitUrl = 'https://github.com/awasisto/encryptedsharedpreferences.git'
 
-    libraryVersion = '2.0.1'
+    libraryVersion = '2.0.2'
 
     developerId = 'awasisto'
     developerName = 'Andika Wasisto'
@@ -51,7 +51,7 @@ android {
     defaultConfig {
         minSdkVersion 18
         targetSdkVersion 27
-        versionCode 3
+        versionCode 4
         versionName libraryVersion
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
