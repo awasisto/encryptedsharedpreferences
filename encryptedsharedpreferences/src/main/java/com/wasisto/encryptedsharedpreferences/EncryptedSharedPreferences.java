@@ -548,7 +548,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
         listeners.remove(listener);
     }
 
-    private class Editor implements SharedPreferences.Editor {
+    public class Editor implements SharedPreferences.Editor {
 
         private SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
 
