@@ -19,7 +19,8 @@ package com.wasisto.encryptedsharedpreferences;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Base64;
@@ -120,33 +121,22 @@ public class EncryptedSharedPreferences implements SharedPreferences {
     public static void getEncryptedSharedPreferencesAsync(Context context,
                                                           String name,
                                                           GetEncryptedSharedPreferencesAsyncCallback callback) {
-        new AsyncTask<Void, Void, Void>() {
-            private EncryptedSharedPreferences mEncryptedSharedPreferences;
-            private Throwable mError;
+        Handler handler = new Handler(Looper.myLooper() != null ? Looper.myLooper() :
+                Looper.getMainLooper());
 
-            @Override
-            protected Void doInBackground(Void... v) {
-                try {
-                    mEncryptedSharedPreferences = getEncryptedSharedPreferences(context, name);
-                } catch (Throwable error) {
-                    mError = error;
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void v) {
-                if (mError != null) {
-                    if (mError instanceof PreferencesLostException) {
-                        callback.onPreferencesLost((PreferencesLostException) mError);
-                    } else {
-                        callback.onError(mError);
-                    }
+        new Thread(() -> {
+            try {
+                EncryptedSharedPreferences encryptedSharedPreferences =
+                        getEncryptedSharedPreferences(context, name);
+                handler.post(() -> callback.onSuccess(encryptedSharedPreferences));
+            } catch (Throwable t) {
+                if (t instanceof PreferencesLostException) {
+                    callback.onPreferencesLost((PreferencesLostException) t);
                 } else {
-                    callback.onSuccess(mEncryptedSharedPreferences);
+                    callback.onError(t);
                 }
             }
-        }.execute();
+        }).start();
     }
 
     /**
@@ -175,33 +165,22 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      */
     public static void getActivityEncryptedPreferencesAsync(Activity activity,
                                                             GetEncryptedSharedPreferencesAsyncCallback callback) {
-        new AsyncTask<Void, Void, Void>() {
-            private EncryptedSharedPreferences mEncryptedSharedPreferences;
-            private Throwable mError;
+        Handler handler = new Handler(Looper.myLooper() != null ? Looper.myLooper() :
+                Looper.getMainLooper());
 
-            @Override
-            protected Void doInBackground(Void... v) {
-                try {
-                    mEncryptedSharedPreferences = getActivityEncryptedPreferences(activity);
-                } catch (Throwable error) {
-                    mError = error;
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void v) {
-                if (mError != null) {
-                    if (mError instanceof PreferencesLostException) {
-                        callback.onPreferencesLost((PreferencesLostException) mError);
-                    } else {
-                        callback.onError(mError);
-                    }
+        new Thread(() -> {
+            try {
+                EncryptedSharedPreferences activityEncryptedPreferences =
+                        getActivityEncryptedPreferences(activity);
+                handler.post(() -> callback.onSuccess(activityEncryptedPreferences));
+            } catch (Throwable t) {
+                if (t instanceof PreferencesLostException) {
+                    callback.onPreferencesLost((PreferencesLostException) t);
                 } else {
-                    callback.onSuccess(mEncryptedSharedPreferences);
+                    callback.onError(t);
                 }
             }
-        }.execute();
+        }).start();
     }
 
     /**
@@ -231,35 +210,22 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      */
     public static void getContextDefaultEncryptedSharedPreferencesAsync(Context context,
                                                                         GetEncryptedSharedPreferencesAsyncCallback callback) {
+        Handler handler = new Handler(Looper.myLooper() != null ? Looper.myLooper() :
+                Looper.getMainLooper());
 
-        new AsyncTask<Void, Void, Void>() {
-            private EncryptedSharedPreferences mEncryptedSharedPreferences;
-            private Throwable mError;
-
-            @Override
-            protected Void doInBackground(Void... v) {
-                try {
-                    mEncryptedSharedPreferences =
-                            getContextDefaultEncryptedSharedPreferences(context);
-                } catch (Throwable error) {
-                    mError = error;
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void v) {
-                if (mError != null) {
-                    if (mError instanceof PreferencesLostException) {
-                        callback.onPreferencesLost((PreferencesLostException) mError);
-                    } else {
-                        callback.onError(mError);
-                    }
+        new Thread(() -> {
+            try {
+                EncryptedSharedPreferences contextDefaultEncryptedSharedPreferences =
+                        getContextDefaultEncryptedSharedPreferences(context);
+                handler.post(() -> callback.onSuccess(contextDefaultEncryptedSharedPreferences));
+            } catch (Throwable t) {
+                if (t instanceof PreferencesLostException) {
+                    callback.onPreferencesLost((PreferencesLostException) t);
                 } else {
-                    callback.onSuccess(mEncryptedSharedPreferences);
+                    callback.onError(t);
                 }
             }
-        }.execute();
+        }).start();
     }
 
     /**
@@ -292,28 +258,17 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      */
     public static void resetEncryptedSharedPreferencesAsync(Context context,
                                                             ResetEncryptedSharedPreferencesAsyncCallback callback) {
-        new AsyncTask<Void, Void, Void>() {
-            private Throwable mError;
+        Handler handler = new Handler(Looper.myLooper() != null ? Looper.myLooper() :
+                Looper.getMainLooper());
 
-            @Override
-            protected Void doInBackground(Void... v) {
-                try {
-                    resetEncryptedSharedPreferences(context);
-                } catch (Throwable error) {
-                    mError = error;
-                }
-                return null;
+        new Thread(() -> {
+            try {
+                resetEncryptedSharedPreferences(context);
+                handler.post(callback::onSuccess);
+            } catch (Throwable t) {
+                handler.post(() -> callback.onError(t));
             }
-
-            @Override
-            protected void onPostExecute(Void v) {
-                if (mError != null) {
-                    callback.onError(mError);
-                } else {
-                    callback.onSuccess();
-                }
-            }
-        }.execute();
+        }).start();
     }
 
     private static EncryptedDataAndIv createEncryptedDataAndIv(JSONObject encryptedValueJsonObject) {
