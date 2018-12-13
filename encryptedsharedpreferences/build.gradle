@@ -33,7 +33,8 @@ ext {
     siteUrl = 'https://github.com/awasisto/encryptedsharedpreferences'
     gitUrl = 'https://github.com/awasisto/encryptedsharedpreferences.git'
 
-    libraryVersion = '2.0.3'
+    libraryVersionCode = 6
+    libraryVersionName = '2.0.4'
 
     developerId = 'awasisto'
     developerName = 'Andika Wasisto'
@@ -51,8 +52,8 @@ android {
     defaultConfig {
         minSdkVersion 18
         targetSdkVersion 27
-        versionCode 5
-        versionName libraryVersion
+        versionCode libraryVersionCode
+        versionName libraryVersionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -74,7 +75,7 @@ dependencies {
 }
 
 group = publishedGroupId
-version = libraryVersion
+version = libraryVersionName
 
 install {
     repositories.mavenInstaller {
