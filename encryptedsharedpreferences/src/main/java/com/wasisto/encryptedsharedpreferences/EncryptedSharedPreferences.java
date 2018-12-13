@@ -67,8 +67,7 @@ public class EncryptedSharedPreferences implements SharedPreferences {
 
     private Map<Object, OnSharedPreferenceChangeListener> listeners = new HashMap<>();
 
-    private EncryptedSharedPreferences(Context context, String encryptedPreferencesName)
-            throws PreferencesLostException {
+    private EncryptedSharedPreferences(Context context, String encryptedPreferencesName) {
         try {
             encryptionService = EncryptionService.getInstance(context);
             sharedPreferences = context.getSharedPreferences(encryptedPreferencesName +
@@ -99,12 +98,9 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      *
      * @return An EncryptedSharedPreferences instance that can be used to retrieve and listen to
      * values of the preferences.
-     *
-     * @throws PreferencesLostException if the encryption key is lost.
      */
     public static EncryptedSharedPreferences getEncryptedSharedPreferences(Context context,
-                                                                           String name)
-            throws PreferencesLostException {
+                                                                           String name) {
         return new EncryptedSharedPreferences(context, name);
     }
 
@@ -147,11 +143,8 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      *
      * @return An EncryptedSharedPreferences instance that can be used to retrieve and listen to
      * values of the preferences.
-     *
-     * @throws PreferencesLostException if the encryption key is lost.
      */
-    public static EncryptedSharedPreferences getActivityEncryptedPreferences(Activity activity)
-            throws PreferencesLostException {
+    public static EncryptedSharedPreferences getActivityEncryptedPreferences(Activity activity) {
         return getEncryptedSharedPreferences(activity, activity.getLocalClassName());
     }
 
@@ -191,11 +184,8 @@ public class EncryptedSharedPreferences implements SharedPreferences {
      *
      * @return An EncryptedSharedPreferences instance that can be used to retrieve and listen to
      * values of the preferences.
-     *
-     * @throws PreferencesLostException if the encryption key is lost.
      */
-    public static EncryptedSharedPreferences getContextDefaultEncryptedSharedPreferences(Context context)
-            throws PreferencesLostException {
+    public static EncryptedSharedPreferences getContextDefaultEncryptedSharedPreferences(Context context) {
         return getEncryptedSharedPreferences(context, context.getPackageName() +
                         CONTEXT_DEFAULT_ENCRYPTED_SHARED_PREFERENCES_NAME_SUFFIX);
     }

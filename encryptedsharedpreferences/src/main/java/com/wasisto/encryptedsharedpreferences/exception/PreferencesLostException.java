@@ -21,7 +21,7 @@ import com.wasisto.androidkeystoreencryption.exception.EncryptionKeyLostExceptio
 /**
  * An exception that will be thrown when the encryption key is lost.
  */
-public class PreferencesLostException extends Exception {
+public class PreferencesLostException extends RuntimeException {
 
     /**
      * Constructs a new {@code EncryptionKeyLostException} with the specified cause.
